@@ -1,4 +1,6 @@
 using AspNetCoreDemoApp.Model;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,41 +14,17 @@ namespace AspNetCoreDemoApp.Logic
         {
             _dbContext = dbContext;
         }
-        public IEnumerable<JapanRestaurant> GetRestaurant(string week, string openTime , string closeTime,
+
+        public IEnumerable<JapanRestaurant> GetRestaurant(
+            string week, string openTime , string closeTime,
             string type, string star,
             bool? parking, bool? uber, bool? deposit,
             string position, int page, int limit)
         {
             var query = _dbContext.JapanRestaurant.AsQueryable();
+            QueryAndCondition(ref query, type, star, parking, uber, deposit, position);
 
-            if (!string.IsNullOrWhiteSpace(type))
-            {
-                query = query.Where(x => x.Type == type);
-            }
-            if (!string.IsNullOrWhiteSpace(star))
-            {
-                query = query.Where(x => x.Star == star);
-            }
-            if (parking.HasValue)
-            {
-                query = query.Where(x => x.Parking == parking.Value);
-            }
-            if (uber.HasValue)
-            {
-                query = query.Where(x => x.Uber == uber.Value);
-            }
-            if (deposit.HasValue)
-            {
-                query = query.Where(x => x.Deposit == deposit.Value);
-            }
-            if (!string.IsNullOrWhiteSpace(position))
-            {
-                query = query.Where(x => x.Position == position);
-            }
-
-            var result = query
-                .ToList();
-
+            var result = query.ToList();
             if (!string.IsNullOrWhiteSpace(week)
                 && !string.IsNullOrWhiteSpace(openTime)
                 && !string.IsNullOrWhiteSpace(closeTime))
@@ -116,7 +94,6 @@ namespace AspNetCoreDemoApp.Logic
                             .ToList();
                         break;
                 }
-
             }
 
             if (result != null)
@@ -127,6 +104,101 @@ namespace AspNetCoreDemoApp.Logic
             }
 
             return result;
+        }
+
+        private void QueryAndCondition(ref IQueryable<JapanRestaurant> query,
+            string type, string star, bool? parking, bool? uber, bool? deposit, string position)
+        {
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                query = query.Where(x => x.Type == type);
+            }
+            if (!string.IsNullOrWhiteSpace(star))
+            {
+                query = query.Where(x => x.Star == star);
+            }
+            if (parking.HasValue)
+            {
+                query = query.Where(x => x.Parking == parking.Value);
+            }
+            if (uber.HasValue)
+            {
+                query = query.Where(x => x.Uber == uber.Value);
+            }
+            if (deposit.HasValue)
+            {
+                query = query.Where(x => x.Deposit == deposit.Value);
+            }
+            if (!string.IsNullOrWhiteSpace(position))
+            {
+                query = query.Where(x => x.Position == position);
+            }
+        }
+
+        public IEnumerable<JapanRestaurant> GetRestaurantOrCondition(
+            string week, string openTime, string closeTime,
+            string type, string star,
+            bool? parking, bool? uber, bool? deposit,
+            string position, int page, int limit)
+        {
+            var queryString = "select * from \"JapanRestaurant\" where  ";
+            var whereString = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                whereString = whereString + " \"Type\" = '" + type
+                    .Replace("'",string.Empty)
+                    .Replace(";",string.Empty) + "'";
+            }
+            if (!string.IsNullOrWhiteSpace(star))
+            {
+                if (!string.IsNullOrEmpty(whereString))
+                {
+                    whereString += " or ";
+                }
+                whereString = whereString + " or \"Star\" = '" + star
+                .Replace("'", string.Empty)
+                .Replace(";", string.Empty) + "'";
+            }
+            if (parking.HasValue)
+            {
+                if (!string.IsNullOrEmpty(whereString))
+                {
+                    whereString += " or ";
+                }
+                whereString = whereString + " or \"Parking\" = " + parking.Value.ToString().ToLower();
+            }
+            if (uber.HasValue)
+            {
+                if (!string.IsNullOrEmpty(whereString))
+                {
+                    whereString += " or ";
+                }
+                whereString = whereString + " or \"Uber\" = " + uber.Value.ToString().ToLower();
+            }
+            if (deposit.HasValue)
+            {
+                if (!string.IsNullOrEmpty(whereString))
+                {
+                    whereString += " or ";
+                }
+                whereString = whereString + " or \"Deposit\" = " + deposit.Value.ToString().ToLower();
+            }
+            if (!string.IsNullOrWhiteSpace(position))
+            {
+                if (!string.IsNullOrEmpty(whereString))
+                {
+                    whereString += " or ";
+                }
+                whereString = whereString + " or \"Position\" = '" + position
+                    .Replace("'", string.Empty)
+                    .Replace(";", string.Empty) + "'";
+            }
+
+            queryString = whereString + " limit " + limit + " offset " + (page - 1) * limit;
+
+
+            return _dbContext.JapanRestaurant.FromSqlRaw(queryString).ToList();
         }
     }
 }

@@ -18,9 +18,18 @@ namespace AspNetCoreDemoApp.Controllers
         [HttpGet]
         public IEnumerable<JapanRestaurant> Get([FromQuery]string week, [FromQuery]string openTime, [FromQuery]string closeTime,
             [FromQuery]string type, [FromQuery]string star, [FromQuery]bool? parking, [FromQuery]bool? uber,
-            [FromQuery]bool? deposit, [FromQuery]string position, [FromQuery]int? page=1, [FromQuery]int? limit=10)
+            [FromQuery]bool? deposit, [FromQuery]string position, [FromQuery]bool? orCondition,
+            [FromQuery]int? page=1, [FromQuery]int? limit=10)
         {
-            return _logic.GetRestaurant(week, openTime, closeTime, type, star, parking, uber, deposit, position, page.Value, limit.Value);
+            if (orCondition.HasValue
+                && orCondition.Value == true)
+            {
+                return _logic.GetRestaurantOrCondition(week, openTime, closeTime, type, star, parking, uber, deposit, position, page.Value, limit.Value);
+            }
+            else
+            {
+                return _logic.GetRestaurant(week, openTime, closeTime, type, star, parking, uber, deposit, position, page.Value, limit.Value);
+            }
         }
     }
 }
