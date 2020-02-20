@@ -1,12 +1,22 @@
 using System;
+using AspNetCoreDemoApp.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AspNetCoreDemoApp
 {
     public class Startup
     {
+        private IConfiguration _configuration;
+
+        public Startup(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         public void ConfigureServices(IServiceCollection services)
         {
             services
@@ -26,6 +36,11 @@ namespace AspNetCoreDemoApp
                                            ForwardedHeaders.XForwardedProto;
                 options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
+            });
+
+            services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseNpgsql(_configuration.GetConnectionString("DefaultConnection"));
             });
         }
 
