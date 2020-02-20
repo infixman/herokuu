@@ -16,12 +16,11 @@ namespace AspNetCoreDemoApp.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<JapanRestaurant> Get([FromQuery]string week, [FromQuery]string type,
-            [FromQuery]string star, [FromQuery]bool? parking, [FromQuery]bool? uber,
-            [FromQuery]bool? deposit, [FromQuery]string position, [FromQuery]int? page,
-            [FromQuery]int? limit)
+        public IEnumerable<JapanRestaurant> Get([FromQuery]string week, [FromQuery]string openTime, [FromQuery]string closeTime,
+            [FromQuery]string type, [FromQuery]string star, [FromQuery]bool? parking, [FromQuery]bool? uber,
+            [FromQuery]bool? deposit, [FromQuery]string position, [FromQuery]int? page=1, [FromQuery]int? limit=10)
         {
-            return _logic.GetRestaurant(week, type, star, parking, uber, deposit, position, page, limit);
+            return _logic.GetRestaurant(week, openTime, closeTime, type, star, parking, uber, deposit, position, page.Value, limit.Value);
         }
     }
 }

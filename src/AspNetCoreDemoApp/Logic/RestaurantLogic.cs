@@ -1,4 +1,5 @@
 using AspNetCoreDemoApp.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,10 +12,120 @@ namespace AspNetCoreDemoApp.Logic
         {
             _dbContext = dbContext;
         }
-        public IEnumerable<JapanRestaurant> GetRestaurant(string week, string type, string star,
-            bool? parking, bool? uber, bool? deposit, string position, int? page=1, int? limit=10)
+        public IEnumerable<JapanRestaurant> GetRestaurant(string week, string openTime , string closeTime,
+            string type, string star,
+            bool? parking, bool? uber, bool? deposit,
+            string position, int page, int limit)
         {
-            var result = _dbContext.JapanRestaurant.Where(x => x.Parking == parking).ToList();
+            var query = _dbContext.JapanRestaurant.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                query = query.Where(x => x.Type == type);
+            }
+            if (!string.IsNullOrWhiteSpace(star))
+            {
+                query = query.Where(x => x.Star == star);
+            }
+            if (parking.HasValue)
+            {
+                query = query.Where(x => x.Parking == parking.Value);
+            }
+            if (uber.HasValue)
+            {
+                query = query.Where(x => x.Uber == uber.Value);
+            }
+            if (deposit.HasValue)
+            {
+                query = query.Where(x => x.Deposit == deposit.Value);
+            }
+            if (!string.IsNullOrWhiteSpace(position))
+            {
+                query = query.Where(x => x.Position == position);
+            }
+
+            var result = query
+                .ToList();
+
+            if (!string.IsNullOrWhiteSpace(week)
+                && !string.IsNullOrWhiteSpace(openTime)
+                && !string.IsNullOrWhiteSpace(closeTime))
+            {
+                switch (week)
+                {
+                    case "7":
+                    case "日":
+                        result = result
+                            .Where(x => x.W7Time.Contains("-"))
+                            .Where(x => Convert.ToDateTime(x.W7Time.Split('-').First()) >= Convert.ToDateTime(openTime))
+                            .Where(x => Convert.ToDateTime(x.W7Time.Split('-').Last()) <= Convert.ToDateTime(closeTime))
+                            .ToList();
+                        break;
+
+                    case "1":
+                    case "一":
+                        result = result
+                            .Where(x => x.W1Time.Contains("-"))
+                            .Where(x => Convert.ToDateTime(x.W1Time.Split('-').First()) >= Convert.ToDateTime(openTime))
+                            .Where(x => Convert.ToDateTime(x.W1Time.Split('-').Last()) <= Convert.ToDateTime(closeTime))
+                            .ToList();
+                        break;
+
+                    case "2":
+                    case "二":
+                        result = result
+                            .Where(x => x.W2Time.Contains("-"))
+                            .Where(x => Convert.ToDateTime(x.W2Time.Split('-').First()) >= Convert.ToDateTime(openTime))
+                            .Where(x => Convert.ToDateTime(x.W2Time.Split('-').Last()) <= Convert.ToDateTime(closeTime))
+                            .ToList();
+                        break;
+
+                    case "3":
+                    case "三":
+                        result = result
+                            .Where(x => x.W3Time.Contains("-"))
+                            .Where(x => Convert.ToDateTime(x.W3Time.Split('-').First()) >= Convert.ToDateTime(openTime))
+                            .Where(x => Convert.ToDateTime(x.W3Time.Split('-').Last()) <= Convert.ToDateTime(closeTime))
+                            .ToList();
+                        break;
+
+                    case "4":
+                    case "四":
+                        result = result
+                            .Where(x => x.W4Time.Contains("-"))
+                            .Where(x => Convert.ToDateTime(x.W4Time.Split('-').First()) >= Convert.ToDateTime(openTime))
+                            .Where(x => Convert.ToDateTime(x.W4Time.Split('-').Last()) <= Convert.ToDateTime(closeTime))
+                            .ToList();
+                        break;
+
+                    case "5":
+                    case "五":
+                        result = result
+                            .Where(x => x.W5Time.Contains("-"))
+                            .Where(x => Convert.ToDateTime(x.W5Time.Split('-').First()) >= Convert.ToDateTime(openTime))
+                            .Where(x => Convert.ToDateTime(x.W5Time.Split('-').Last()) <= Convert.ToDateTime(closeTime))
+                            .ToList();
+                        break;
+
+                    case "6":
+                    case "六":
+                        result = result
+                            .Where(x => x.W6Time.Contains("-"))
+                            .Where(x => Convert.ToDateTime(x.W6Time.Split('-').First()) >= Convert.ToDateTime(openTime))
+                            .Where(x => Convert.ToDateTime(x.W6Time.Split('-').Last()) <= Convert.ToDateTime(closeTime))
+                            .ToList();
+                        break;
+                }
+
+            }
+
+            if (result != null)
+            {
+                result = result.Skip((page - 1) * limit)
+                .Take(limit)
+                .ToList();
+            }
+
             return result;
         }
     }
