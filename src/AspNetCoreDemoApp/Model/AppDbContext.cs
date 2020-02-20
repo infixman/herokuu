@@ -8,6 +8,12 @@ namespace AspNetCoreDemoApp.Model
         : base(options)
         {
         }
+
         public DbSet<JapanRestaurant> JapanRestaurant { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<JapanRestaurant>().HasNoKey();
+        }
     }
 }
