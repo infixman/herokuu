@@ -38,9 +38,15 @@ namespace AspNetCoreDemoApp
                 options.KnownProxies.Clear();
             });
 
+            var dbConnectionString = Environment.GetEnvironmentVariable("Heroku_DB");
+            if (string.IsNullOrWhiteSpace(dbConnectionString))
+            {
+                dbConnectionString = _configuration.GetConnectionString("DefaultConnection");
+            }
+
             services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseNpgsql(_configuration.GetConnectionString("DefaultConnection"));
+                options.UseNpgsql(dbConnectionString);
             });
         }
 
